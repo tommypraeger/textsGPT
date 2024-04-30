@@ -14,6 +14,8 @@ This project uses `black` for formatting. Following the [instructions for instal
 black .
 ```
 
+This project uses `typing`. If you are using VS Code and have a Python language server configured, I recommend setting `"python.analysis.typeCheckingMode": "strict"` in your settings.json to enforce type checking. Learn more [here](https://code.visualstudio.com/docs/python/settings-reference#_python-language-server-settings).
+
 ## Acknowledgements
 - This project is in collaboration with Gabe Schmittlein and draws significant inspiration from https://github.com/gschmittlein/imessageGPT
 - This project borrows from https://github.com/tommypraeger/imessage_analysis, which drew inspiration from https://stmorse.github.io/journal/iMessage.html
