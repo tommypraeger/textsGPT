@@ -29,7 +29,8 @@ class Contact:
         self.name = name
         self.phone_number = self.clean_phone_number(phone_number)
 
-    def clean_phone_number(self, phone_number: str) -> str:
+    @staticmethod
+    def clean_phone_number(phone_number: str) -> str:
         """
         Cleans phone number so it can be used to query the DB.
         Removes non-numeric characters.
@@ -72,6 +73,8 @@ class Contact:
         chat_db.execute(query)
         contact_ids = chat_db.fetchall()
         if len(contact_ids) == 0:
-            raise ValueError(f"Did not find {self.phone_number} in the chat DB.")
+            raise ValueError(
+                f"phone number {self.phone_number} not found in the chat DB."
+            )
         # each row is a singleton tuple
         return [str(contact_id[0]) for contact_id in contact_ids]
