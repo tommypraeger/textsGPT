@@ -26,7 +26,7 @@ def test_clean_phone_number__success(phone_number: str):
 )
 def test_clean_phone_number__too_short(phone_number: str):
     """
-    Test that clean_phone_number returns an error when the number is too short.
+    Test that clean_phone_number raises an error when the number is too short.
     """
     with pytest.raises(ValueError):
         Contact.clean_phone_number(phone_number)
@@ -38,7 +38,7 @@ def test_clean_phone_number__too_short(phone_number: str):
 )
 def test_clean_phone_number__too_long(phone_number: str):
     """
-    Test that clean_phone_number returns an error when the number is too long.
+    Test that clean_phone_number raises an error when the number is too long.
     """
     with pytest.raises(ValueError):
         Contact.clean_phone_number(phone_number)
@@ -49,7 +49,7 @@ def test_clean_phone_number__too_long(phone_number: str):
 )
 def test_clean_phone_number__not_a_number(phone_number: str):
     """
-    Test that clean_phone_number returns an error when the input is not a number.
+    Test that clean_phone_number raises an error when the input is not a number.
     This assumes email addresses are not supported, though it's possible they are used to end texts.
     """
     with pytest.raises(ValueError):

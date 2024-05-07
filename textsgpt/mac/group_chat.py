@@ -55,6 +55,7 @@ class GroupChat:
 
         # save the contact IDs and chat IDs for this chat
         # map from contact ID -> contact name to be used in substitution later
+        # contact ID 0 is always the user
         contact_id_map = {"0": self.user_name}
         for member in self.members:
             contact_ids = member.get_contact_ids(chat_db)
@@ -101,7 +102,7 @@ class GroupChat:
         chat_db.execute(query)
         chat_ids = chat_db.fetchall()
         if len(chat_ids) == 0:
-            raise ValueError(f"Did not find {self.name} in the chat DB.")
+            raise ValueError(f'chat with name "{self.name}" not found in the chat DB.')
         # each row is a singleton tuple
         return [str(chat_id[0]) for chat_id in chat_ids]
 
