@@ -51,7 +51,24 @@ class Chat:
         """
         Closes the connection to the chat DB.
         """
-        self.chat_db.close()
+        try:
+            self.chat_db.connection.close()
+        except AttributeError:
+            # assume chat_db failed to be initialized
+            pass
+
+    @staticmethod
+    def get_db_file_path():
+        """
+        Returns the location of the chat DB on Mac.
+        Mainly used so the location can be replaced in testing.
+
+        Returns:
+            str:
+                Location of chat DB on Mac.
+        """
+        home_dir = pathlib.Path.home()
+        return f"{home_dir}/Library/Messages/chat.db"
 
     def connect_to_db(self) -> sqlite3.Cursor:
         """
@@ -62,14 +79,14 @@ class Chat:
             sqlite3.Cursor:
                 Connection to the chat DB.
         """
-        home_dir = pathlib.Path.home()
-        chat_db = sqlite3.connect(f"{home_dir}/Library/Messages/chat.db").cursor()
         try:
+            chat_db = sqlite3.connect(self.get_db_file_path()).cursor()
             test_query = "SELECT * FROM handle LIMIT 1"
             chat_db.execute(test_query)
             return chat_db
         except sqlite3.OperationalError as e:
             raise PermissionError(
+                "\n\n\n=====================================================================\n"
                 "There was an error accessing the messages database.\n"
                 "If you are using a Mac and want to access the messages database, "
                 "follow these steps to give access to the messages database:\n"
@@ -77,8 +94,9 @@ class Chat:
                 "2. Go to Security and Privacy\n"
                 "3. Go to Privacy\n"
                 "4. Go to Full Disk Access\n"
-                "5. Give whatever application you're running this from Full Disk Access, ",
-                "and then run the script again\n",
+                "5. Give whatever application you're running this from Full Disk Access, "
+                "and then run the script again\n"
+                "====================================================================="
             ) from e
 
     def load_messages(self) -> pd.DataFrame:

@@ -10,6 +10,9 @@ import sqlite3
 import pytest
 
 
+TEST_DB_FILE = "test_chat.db"
+
+
 # scope="session" will cause the same DB connection to be used throughout the test session
 @pytest.fixture(scope="session")
 def test_db():
@@ -22,12 +25,11 @@ def test_db():
         sqlite3.Cursor:
             Cursor to the testing DB.
     """
-    test_db_file = "test_chat.db"
-    if os.path.exists(test_db_file):
+    if os.path.exists(TEST_DB_FILE):
         # remove and re-create DB if it exists
-        os.remove(test_db_file)
+        os.remove(TEST_DB_FILE)
 
-    test_db_cursor = sqlite3.connect(test_db_file).cursor()
+    test_db_cursor = sqlite3.connect(TEST_DB_FILE).cursor()
     create_handle_table(test_db_cursor)
     create_chat_table(test_db_cursor)
     create_message_table(test_db_cursor)
@@ -37,7 +39,7 @@ def test_db():
     yield test_db_cursor
 
     # delete DB after running all tests
-    os.remove(test_db_file)
+    os.remove(TEST_DB_FILE)
 
 
 def create_handle_table(test_db_cursor: sqlite3.Cursor):
