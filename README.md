@@ -9,12 +9,33 @@ TODO
 TODO
 
 ## Contributing
+
+### Formatting
+
 This project uses `black` for formatting. Following the [instructions for installation](https://github.com/psf/black?tab=readme-ov-file#installation-and-usage). Once installed, format by running the following from the root of this project:
 ```
 black .
 ```
 
+### Typing
+
 This project uses `typing`. If you are using VS Code and have a Python language server configured, I recommend setting `"python.analysis.typeCheckingMode": "strict"` in your settings.json to enforce type checking. Learn more [here](https://code.visualstudio.com/docs/python/settings-reference#_python-language-server-settings).
+
+### Testing
+
+#### Unit tests
+
+This project uses [pytest](https://docs.pytest.org/). To run unit tests, run the following from the root of this project:
+```
+pytest
+```
+
+To generate a test coverage report, run:
+```
+pytest --cov-report=term-missing --cov=textsgpt
+```
+
+#### Manual testing
 
 To change the contents of `my_chats.py` without accidentally committing your chat info, you can run:
 ```
