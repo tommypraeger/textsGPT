@@ -80,7 +80,7 @@ def test_load_messages__name2(
 ):
     """
     Tests that messages can be loaded from a group chat into a pandas DataFrame.
-    The group chat in this test has a message from a sender not associated with a contact."
+    The group chat in this test has a message from a sender not associated with a contact.
     """
     gc = GroupChat("name2", members=[alice, bob])
     messages = gc.load_messages(test_db)

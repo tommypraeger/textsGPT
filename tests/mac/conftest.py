@@ -62,15 +62,18 @@ def create_chat_table(test_db_cursor: sqlite3.Cursor):
     """
     Create chat table in database and add entries used for testing.
     """
-    test_db_cursor.execute("CREATE TABLE chat(ROWID, display_name)")
+    test_db_cursor.execute("CREATE TABLE chat(ROWID, display_name, chat_identifier)")
+    # fmt: off
     chats = [
-        (1, "name"),
-        (2, "name2"),
-        (3, ""),  # display name is empty unless explicitly set
-        (4, "name"),  # second appearance
-        (5, ""),
+        (1, "name", "chat12345678"), # chat_identifier for group chats is `chat<random_number>`
+        (2, "name2", "chat87654321"),
+        (3, "", "+11234567890"),  # display_name is empty unless explicitly set
+        (4, "name", "chat11235813"),  # second appearance
+        (5, "", "+11000000000"), # chat_identifier looks like phone number
+        (6, "", "+11234567890"),  # second appearance
     ]
-    test_db_cursor.executemany("INSERT INTO chat VALUES(?, ?)", chats)
+    # fmt: on
+    test_db_cursor.executemany("INSERT INTO chat VALUES(?, ?, ?)", chats)
     test_db_cursor.connection.commit()
 
 
@@ -79,27 +82,35 @@ def create_message_table(test_db_cursor: sqlite3.Cursor):
     Create message table in database and add entries used for testing.
     """
     test_db_cursor.execute(
-        "CREATE TABLE message(ROWID, handle_id, text, date, associated_message_type)"
+        "CREATE TABLE message(ROWID, handle_id, is_from_me, text, date, associated_message_type)"
     )
     # reaction messages (like, love, etc) have associated_message_type in the 2000s
     # normal messages have associated_message_type of 0
     # intentionally leaving dates unsorted - ordering should be handled by query
+    # handle_id doesn't actually matter for individual chats - chat_message_join matters
     # fmt: off
     messages = [
         # chat: name
-        (1, 0, "hello alice and bob", 0, 0),  # from user
-        (2, 1, "hello user and bob", 10, 0),  # from alice's first ID
-        (3, 2, "hello user and alice", 20, 0),  # from bob
-        (4, 4, "Loved “hello user and alice”", 30, 2000),  # love reaction from alice's second ID
+        (1, 0, 1, "hello alice and bob", 0, 0),  # from user
+        (2, 1, 0, "hello user and bob", 10, 0),  # from alice's first ID
+        (3, 2, 0, "hello user and alice", 20, 0),  # from bob
+        (4, 4, 0, "Loved “hello user and alice”", 30, 2000),  # love reaction from alice's second ID
         # chat: name2
-        (5, 0, "hello a and b", 1, 0),  # from user
-        (6, 1, "hello u and b", 11, 0),  # from alice's first ID
-        (7, 2, "hello u and a", 21, 0),  # from bob
-        (8, 4, "Loved “hello u and a”", 31, 2000),  # love reaction from alice's second ID
-        (9, 50, "hello -anonymous", 41, 0),  # no contact associated with this sender
+        (5, 0, 1, "hello a and b", 1, 0),  # from user
+        (6, 1, 0, "hello u and b", 11, 0),  # from alice's first ID
+        (7, 2, 0, "hello u and a", 21, 0),  # from bob
+        (8, 4, 0, "Loved “hello u and a”", 31, 2000),  # love reaction from alice's second ID
+        (9, 50, 0, "hello -anonymous", 41, 0),  # no contact associated with this sender
+        # chat: alice
+        (10, 3, 1, "hello alice", 2, 0),  # from user
+        (11, 3, 0, "hello user", 12, 0),  # from alice
+        (12, 6, 0, "Loved “hello alice”", 22, 2000),  # love reaction from alice's second chat ID
+        # chat: bob
+        (13, 5, 1, "hello bob", 3, 0),  # from user
+        (14, 5, 0, "hello user", 13, 0),  # from bob
     ]
     # fmt: on
-    test_db_cursor.executemany("INSERT INTO message VALUES(?, ?, ?, ?, ?)", messages)
+    test_db_cursor.executemany("INSERT INTO message VALUES(?, ?, ?, ?, ?, ?)", messages)
     test_db_cursor.connection.commit()
 
 
@@ -121,6 +132,13 @@ def create_chat_message_join_table(test_db_cursor: sqlite3.Cursor):
         (2, 7),
         (2, 8),
         (2, 9),
+        # chat: alice
+        (3, 10),
+        (3, 11),
+        (6, 12),
+        # chat: bob
+        (5, 13),
+        (5, 14),
     ]
     test_db_cursor.executemany(
         "INSERT INTO chat_message_join VALUES(?, ?)", chats_messages

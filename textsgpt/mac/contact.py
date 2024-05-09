@@ -63,7 +63,7 @@ class Contact:
         Returns:
             list[str]:
                 List of contacts IDs for this contact.
-                There may be more than one contact ID for one contact.
+                There may be more than one contact ID for each contact.
         """
         query = f"""
         SELECT ROWID

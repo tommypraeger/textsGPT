@@ -91,8 +91,8 @@ class GroupChat:
 
         Returns:
             list[str]:
-                List of contacts IDs for this contact.
-                There may be more than one contact ID for one contact.
+                List of chat IDs for this chat.
+                There may be more than one chat ID for each chat.
         """
         query = f"""
         SELECT ROWID

@@ -15,6 +15,7 @@ import pytest
 from textsgpt.mac.chat import Chat
 from textsgpt.mac.contact import Contact
 from textsgpt.mac.group_chat import GroupChat
+from textsgpt.mac.individual_chat import IndividualChat
 
 from .conftest import TEST_DB_FILE
 
@@ -26,7 +27,8 @@ test_chats = {
             Contact("Alice", "(123)456-7890"),
             Contact("Bob", "100-000-0000"),
         ],
-    )
+    ),
+    "alice": IndividualChat(other_person=Contact("Alice", "(123)456-7890")),
 }
 
 
@@ -152,6 +154,42 @@ def test_load_messages__group_chat_custom_user_name():
                 ["Alice", "hello user and bob", "10", "0"],
                 ["Bob", "hello user and alice", "20", "0"],
                 ["Alice", "Loved “hello user and alice”", "30", "2000"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        )
+    )
+
+
+@with_patches
+def test_load_messages__individual_chat():
+    """
+    Test that messages can be loaded for an individual chat using the default user name.
+    """
+    chat = Chat("alice")
+    assert chat.messages.equals(  # type: ignore
+        pd.DataFrame(
+            [
+                ["You", "hello alice", "2", "0"],
+                ["Alice", "hello user", "12", "0"],
+                ["Alice", "Loved “hello alice”", "22", "2000"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        )
+    )
+
+
+@with_patches
+def test_load_messages__individual_chat_custom_user_name():
+    """
+    Test that messages can be loaded for an individual chat using a custom user name.
+    """
+    chat = Chat("alice", "Me")
+    assert chat.messages.equals(  # type: ignore
+        pd.DataFrame(
+            [
+                ["Me", "hello alice", "2", "0"],
+                ["Alice", "hello user", "12", "0"],
+                ["Alice", "Loved “hello alice”", "22", "2000"],
             ],
             columns=["sender", "text", "time", "type"],
         )
