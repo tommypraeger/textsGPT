@@ -194,3 +194,11 @@ def test_load_messages__individual_chat_custom_user_name():
             columns=["sender", "text", "time", "type"],
         )
     )
+
+
+@with_patches
+def test_apply_rules():
+    """
+    Test that asserts rules can successfully be applied.
+    """
+    # TODO

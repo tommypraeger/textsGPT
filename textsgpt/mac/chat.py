@@ -9,6 +9,8 @@ import sqlite3
 
 import pandas as pd
 
+from textsgpt.rules import Rule
+
 from .my_chats import CHATS
 
 
@@ -109,3 +111,18 @@ class Chat:
                 pandas DataFrame containing the messages of the chat.
         """
         return self.chat.load_messages(self.chat_db)
+
+    def apply_rules(self, *rules: Rule):
+        """
+        Applies rules to the messages DataFrame.
+        Rules may filter or alter the DataFrame in some way.
+
+        Args:
+            *rules (Rule):
+                Arbitrary list of rules to apply to the messages DataFrame.
+                Rules are applied sequentially and each modify the DataFrame.
+        """
+        for rule in rules:
+            func = rule.func
+            kwargs = rule.kwargs
+            self.messages = func(self.messages, **kwargs)
