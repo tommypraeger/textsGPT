@@ -16,7 +16,9 @@ from textsgpt.mac.chat import Chat
 from textsgpt.mac.contact import Contact
 from textsgpt.mac.group_chat import GroupChat
 from textsgpt.mac.individual_chat import IndividualChat
+from textsgpt.rules import Rule
 
+from ..utils import assert_dataframes_equal
 from .conftest import TEST_DB_FILE
 
 # testing chat dictionary used to replace CHATS dictionary
@@ -196,9 +198,58 @@ def test_load_messages__individual_chat_custom_user_name():
     )
 
 
+def remove_member(messages: pd.DataFrame, member: str) -> pd.DataFrame:
+    """
+    Simple rule used for testing.
+    Removes messages from a specified member of the chat.
+    """
+    return messages[messages["sender"] != member]
+
+
+def reverse_order(messages: pd.DataFrame) -> pd.DataFrame:
+    """
+    Simple rule used for testing. Reverses the order of the messages.
+    """
+    return messages.sort_values(by=["time"], ascending=False)  # type: ignore
+
+
+@with_patches
+def test_apply_rule():
+    """
+    Test that asserts a single rule can be applied successfully.
+    Uses a rule that takes in a keyword arg.
+    """
+    chat = Chat("name")
+    chat.apply_rules(Rule(remove_member, {"member": "Bob"}))
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["You", "hello alice and bob", "0", "0"],
+                ["Alice", "hello user and bob", "10", "0"],
+                ["Alice", "Loved “hello user and alice”", "30", "2000"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        chat.messages,
+    )
+
+
 @with_patches
 def test_apply_rules():
     """
-    Test that asserts rules can successfully be applied.
+    Test that asserts multiple rules can be applied successfully.
+    Uses one rule that takes in a keyword arg and one that doesn't.
     """
-    # TODO
+    chat = Chat("name")
+    chat.apply_rules(Rule(remove_member, {"member": "Bob"}), Rule(reverse_order))
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["Alice", "Loved “hello user and alice”", "30", "2000"],
+                ["Alice", "hello user and bob", "10", "0"],
+                ["You", "hello alice and bob", "0", "0"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        chat.messages,
+    )
