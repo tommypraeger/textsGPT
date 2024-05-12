@@ -10,6 +10,7 @@ import pytest
 from textsgpt.mac.contact import Contact
 from textsgpt.mac.individual_chat import IndividualChat
 
+from ..utils import assert_dataframes_equal
 
 alice = Contact("Alice", "(123)456-7890")
 bob = Contact("Bob", "100-000-0000")
@@ -61,7 +62,7 @@ def test_load_messages__multiple_contact_ids(test_db: sqlite3.Cursor):
     """
     chat = IndividualChat(other_person=alice)
     messages = chat.load_messages(test_db)
-    assert messages.equals(  # type: ignore
+    assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["You", "hello alice", "2", "0"],
@@ -69,7 +70,8 @@ def test_load_messages__multiple_contact_ids(test_db: sqlite3.Cursor):
                 ["Alice", "Loved “hello alice”", "22", "2000"],
             ],
             columns=["sender", "text", "time", "type"],
-        )
+        ),
+        messages,
     )
 
 
@@ -80,12 +82,13 @@ def test_load_messages__single_contact_id(test_db: sqlite3.Cursor):
     """
     chat = IndividualChat(other_person=bob)
     messages = chat.load_messages(test_db)
-    assert messages.equals(  # type: ignore
+    assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["You", "hello bob", "3", "0"],
                 ["Bob", "hello user", "13", "0"],
             ],
             columns=["sender", "text", "time", "type"],
-        )
+        ),
+        messages,
     )

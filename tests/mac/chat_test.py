@@ -130,7 +130,7 @@ def test_load_messages__group_chat():
     Test that messages can be loaded for a group chat using the default user name.
     """
     chat = Chat("name")
-    assert chat.messages.equals(  # type: ignore
+    assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["You", "hello alice and bob", "0", "0"],
@@ -139,7 +139,8 @@ def test_load_messages__group_chat():
                 ["Alice", "Loved “hello user and alice”", "30", "2000"],
             ],
             columns=["sender", "text", "time", "type"],
-        )
+        ),
+        chat.messages,
     )
 
 
@@ -149,7 +150,7 @@ def test_load_messages__group_chat_custom_user_name():
     Test that messages can be loaded for a group chat using a custom user name.
     """
     chat = Chat("name", "Me")
-    assert chat.messages.equals(  # type: ignore
+    assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["Me", "hello alice and bob", "0", "0"],
@@ -158,7 +159,8 @@ def test_load_messages__group_chat_custom_user_name():
                 ["Alice", "Loved “hello user and alice”", "30", "2000"],
             ],
             columns=["sender", "text", "time", "type"],
-        )
+        ),
+        chat.messages,
     )
 
 
@@ -168,7 +170,7 @@ def test_load_messages__individual_chat():
     Test that messages can be loaded for an individual chat using the default user name.
     """
     chat = Chat("alice")
-    assert chat.messages.equals(  # type: ignore
+    assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["You", "hello alice", "2", "0"],
@@ -176,7 +178,8 @@ def test_load_messages__individual_chat():
                 ["Alice", "Loved “hello alice”", "22", "2000"],
             ],
             columns=["sender", "text", "time", "type"],
-        )
+        ),
+        chat.messages,
     )
 
 
@@ -186,7 +189,7 @@ def test_load_messages__individual_chat_custom_user_name():
     Test that messages can be loaded for an individual chat using a custom user name.
     """
     chat = Chat("alice", "Me")
-    assert chat.messages.equals(  # type: ignore
+    assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["Me", "hello alice", "2", "0"],
@@ -194,7 +197,8 @@ def test_load_messages__individual_chat_custom_user_name():
                 ["Alice", "Loved “hello alice”", "22", "2000"],
             ],
             columns=["sender", "text", "time", "type"],
-        )
+        ),
+        chat.messages,
     )
 
 

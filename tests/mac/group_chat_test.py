@@ -10,6 +10,7 @@ import pytest
 from textsgpt.mac.contact import Contact
 from textsgpt.mac.group_chat import GroupChat
 
+from ..utils import assert_dataframes_equal
 
 alice = Contact("Alice", "(123)456-7890")
 bob = Contact("Bob", "100-000-0000")
@@ -62,7 +63,7 @@ def test_load_messages__name(test_db: sqlite3.Cursor):
     """
     gc = GroupChat("name", members=[alice, bob])
     messages = gc.load_messages(test_db)
-    assert messages.equals(  # type: ignore
+    assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["You", "hello alice and bob", "0", "0"],
@@ -71,7 +72,8 @@ def test_load_messages__name(test_db: sqlite3.Cursor):
                 ["Alice", "Loved “hello user and alice”", "30", "2000"],
             ],
             columns=["sender", "text", "time", "type"],
-        )
+        ),
+        messages,
     )
 
 
@@ -85,7 +87,7 @@ def test_load_messages__name2(
     gc = GroupChat("name2", members=[alice, bob])
     messages = gc.load_messages(test_db)
     out, _ = capsys.readouterr()
-    assert messages.equals(  # type: ignore
+    assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["You", "hello a and b", "1", "0"],
@@ -95,7 +97,8 @@ def test_load_messages__name2(
                 ["Unknown", "hello -anonymous", "41", "0"],
             ],
             columns=["sender", "text", "time", "type"],
-        )
+        ),
+        messages,
     )
     assert "[WARN]" in out
     assert "unknown" in out
