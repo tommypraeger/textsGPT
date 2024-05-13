@@ -34,7 +34,9 @@ class GroupChat:
                 This must match the name of the group chat exactly
                 as it appears in the Messages app.
             members (list[Contact]):
-                Members of the chat. Don't include yourself.
+                Members of the chat.
+                You don't need to include a contact for yourself,
+                but it can be useful if your messages are coming from multiple addresses.
         """
         self.name = name
         self.members = members
@@ -65,18 +67,26 @@ class GroupChat:
 
         # get messages and replace contact IDs with names
         message_df = self.get_message_df(chat_db, chat_ids)
+        known_missing_contacts: set[str] = set()
         for row in range(len(message_df)):
+            sender_id = str(message_df.loc[row, "sender"])
             try:
-                sender = contact_id_map[message_df.loc[row, "sender"]]  # type: ignore
+                sender = contact_id_map[sender_id]
                 message_df.loc[row, "sender"] = sender
             except KeyError:
-                print(
-                    "[WARN] Found message from unknown sender. "
-                    "Please make sure all chat members are added as Contacts."
-                )
-                # use "Unknown" as name for undeclared contacts
-                message_df.loc[row, "sender"] = "Unknown"
-                contact_id_map[message_df.loc[row, "sender"]] = "Unknown"  # type: ignore
+                # if a contact hasn't been provided for this sender,
+                # use the handle (phone number or email) associated with the sender instead
+                missing_contact = self.get_handle_for_contact_id(chat_db, sender_id)
+                message_df.loc[row, "sender"] = missing_contact
+
+                # save the missing contact value in case it pops up again
+                if missing_contact not in known_missing_contacts:
+                    print(
+                        f"[WARN] Found message(s) from unknown sender: {missing_contact}. "
+                        "Please make sure all chat members are added as Contacts."
+                    )
+                    contact_id_map[sender_id] = missing_contact
+                    known_missing_contacts.add(missing_contact)
 
         return message_df
 
@@ -106,7 +116,36 @@ class GroupChat:
         # each row is a singleton tuple
         return [str(chat_id[0]) for chat_id in chat_ids]
 
-    def get_message_df(self, chat_db: sqlite3.Cursor, chat_ids: list[str]):
+    def get_handle_for_contact_id(
+        self, chat_db: sqlite3.Cursor, contact_id: str
+    ) -> str:
+        """
+        Find the handle for a given contact ID (iMessage internal concept).
+        The handle will be the phone number or email that iMessage associates with the contact.
+        This is used to find a meaningful way to label the sender of a message
+        for which there was no associated `Contact` provided.
+
+        Args:
+            chat_db (sqlite3.Cursor):
+                Connection to the chat DB.
+            contact_id (str):
+                The contact ID (iMessage internal concept) to search for.
+
+        Returns:
+            str:
+                The handle (phone number or email) corresponding to the given contact ID.
+        """
+        query = f"""
+        SELECT id
+        FROM handle
+        WHERE ROWID={contact_id}
+        """
+        chat_db.execute(query)
+        return str(chat_db.fetchone()[0])  # fetchone will return a singleton tuple
+
+    def get_message_df(
+        self, chat_db: sqlite3.Cursor, chat_ids: list[str]
+    ) -> pd.DataFrame:
         """
         Read the messages from the DB into a Pandas DataFrame
 
@@ -121,11 +160,11 @@ class GroupChat:
                 DataFrame containing raw message data from the chat.
         """
         query = f"""
-        SELECT handle_id, text, date, associated_message_type \
-        FROM message T1 \
-        INNER JOIN chat_message_join T2 \
-            ON T2.chat_id IN ({",".join(chat_ids)}) \
-            AND T1.ROWID=T2.message_id \
+        SELECT handle_id, text, date, associated_message_type
+        FROM message T1
+        INNER JOIN chat_message_join T2
+            ON T2.chat_id IN ({",".join(chat_ids)})
+            AND T1.ROWID=T2.message_id
         ORDER BY T1.date
         """
         chat_db.execute(query)
@@ -133,5 +172,7 @@ class GroupChat:
             chat_db.fetchall(),
             columns=["sender", "text", "time", "type"],
         )
+        df.dropna(inplace=True)  # type: ignore
+        df.reset_index(drop=True, inplace=True)
         df = df.astype({"sender": str, "text": str, "time": str, "type": str})  # type: ignore
         return df

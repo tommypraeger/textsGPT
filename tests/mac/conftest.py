@@ -53,6 +53,7 @@ def create_handle_table(test_db_cursor: sqlite3.Cursor):
         (3, "email@notaphonenumber.net"),
         (4, "+11234567890"),  # second appearance
         (5, "12345"),
+        (50, "unknown@email.com"),  # "unknown" contact in name2 chat
     ]
     test_db_cursor.executemany("INSERT INTO handle VALUES(?, ?)", handles)
     test_db_cursor.connection.commit()

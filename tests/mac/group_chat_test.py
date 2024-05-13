@@ -94,11 +94,11 @@ def test_load_messages__name2(
                 ["Alice", "hello u and b", "11", "0"],
                 ["Bob", "hello u and a", "21", "0"],
                 ["Alice", "Loved “hello u and a”", "31", "2000"],
-                ["Unknown", "hello -anonymous", "41", "0"],
+                ["unknown@email.com", "hello -anonymous", "41", "0"],
             ],
             columns=["sender", "text", "time", "type"],
         ),
         messages,
     )
     assert "[WARN]" in out
-    assert "unknown" in out
+    assert "unknown@email.com" in out

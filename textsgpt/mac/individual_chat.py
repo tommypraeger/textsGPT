@@ -102,11 +102,11 @@ class IndividualChat:
                 DataFrame containing raw message data from the chat.
         """
         query = f"""
-        SELECT is_from_me, text, date, associated_message_type \
-        FROM message T1 \
-        INNER JOIN chat_message_join T2 \
-            ON T2.chat_id IN ({",".join([str(chat_id) for chat_id in chat_ids])}) \
-            AND T1.ROWID=T2.message_id \
+        SELECT is_from_me, text, date, associated_message_type
+        FROM message T1
+        INNER JOIN chat_message_join T2
+            ON T2.chat_id IN ({",".join([str(chat_id) for chat_id in chat_ids])})
+            AND T1.ROWID=T2.message_id
         ORDER BY T1.date
         """
         chat_db.execute(query)
@@ -114,5 +114,7 @@ class IndividualChat:
             chat_db.fetchall(),
             columns=["is_from_me", "text", "time", "type"],
         )
+        df.dropna(inplace=True)  # type: ignore
+        df.reset_index(drop=True, inplace=True)
         df = df.astype({"is_from_me": int, "text": str, "time": str, "type": str})  # type: ignore
         return df

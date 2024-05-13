@@ -126,3 +126,4 @@ class Chat:
             func = rule.func
             kwargs = rule.kwargs
             self.messages = func(self.messages, **kwargs)
+            self.messages.reset_index(drop=True, inplace=True)

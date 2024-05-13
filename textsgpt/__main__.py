@@ -8,7 +8,7 @@ from .mac.chat import Chat
 from .rules import Rule, remove_non_alphanumeric_messages, remove_non_standard_imessages
 
 chat = Chat(sys.argv[1], sys.argv[2])
-chat.apply_rules(
+chat.apply_rules(  # TODO: remove links
     Rule(remove_non_alphanumeric_messages), Rule(remove_non_standard_imessages)
 )
 print(chat.messages.head(n=5))

@@ -6,6 +6,8 @@ A contact represents a member of a group or individual chat.
 import sqlite3
 
 
+# TODO: allow email addresses
+# TODO: allow multiple phone numbers/emails in one contact
 class Contact:
     """
     A class to define how to input a contact i.e. a member of a chat
