@@ -50,7 +50,7 @@ def create_handle_table(test_db_cursor: sqlite3.Cursor):
     handles = [
         (1, "+11234567890"),
         (2, "+11000000000"),
-        (3, "email@notaphonenumber.net"),
+        (3, "alice@email.com"),
         (4, "+11234567890"),  # second appearance
         (5, "12345"),
         (50, "unknown@email.com"),  # "unknown" contact in name2 chat
@@ -72,6 +72,7 @@ def create_chat_table(test_db_cursor: sqlite3.Cursor):
         (4, "name", "chat11235813"),  # second appearance
         (5, "", "+11000000000"), # chat_identifier looks like phone number
         (6, "", "+11234567890"),  # second appearance
+        (7, "", "alice@email.com"),  # email address
     ]
     # fmt: on
     test_db_cursor.executemany("INSERT INTO chat VALUES(?, ?, ?)", chats)
@@ -89,6 +90,7 @@ def create_message_table(test_db_cursor: sqlite3.Cursor):
     # normal messages have associated_message_type of 0
     # intentionally leaving dates unsorted - ordering should be handled by query
     # handle_id doesn't actually matter for individual chats - chat_message_join matters
+    # handle_id is same as chat_id for individual chats in chat.db
     # fmt: off
     messages = [
         # chat: name
@@ -102,13 +104,15 @@ def create_message_table(test_db_cursor: sqlite3.Cursor):
         (7, 2, 0, "hello u and a", 21, 0),  # from bob
         (8, 4, 0, "Loved “hello u and a”", 31, 2000),  # love reaction from alice's second ID
         (9, 50, 0, "hello -anonymous", 41, 0),  # no contact associated with this sender
+        (10, 3, 0, "hello from my email", 51, 0),  # from alice's third ID
         # chat: alice
-        (10, 3, 1, "hello alice", 2, 0),  # from user
-        (11, 3, 0, "hello user", 12, 0),  # from alice
-        (12, 6, 0, "Loved “hello alice”", 22, 2000),  # love reaction from alice's second chat ID
+        (11, 3, 1, "hello alice", 2, 0),  # from user
+        (12, 3, 0, "hello user", 12, 0),  # from alice
+        (13, 6, 0, "Loved “hello alice”", 22, 2000),  # love reaction from alice's second chat ID
+        (14, 7, 0, "hello from my email", 32, 0),  # from alice's third ID
         # chat: bob
-        (13, 5, 1, "hello bob", 3, 0),  # from user
-        (14, 5, 0, "hello user", 13, 0),  # from bob
+        (15, 5, 1, "hello bob", 3, 0),  # from user
+        (16, 5, 0, "hello user", 13, 0),  # from bob
     ]
     # fmt: on
     test_db_cursor.executemany("INSERT INTO message VALUES(?, ?, ?, ?, ?, ?)", messages)
@@ -133,13 +137,15 @@ def create_chat_message_join_table(test_db_cursor: sqlite3.Cursor):
         (2, 7),
         (2, 8),
         (2, 9),
+        (2, 10),
         # chat: alice
-        (3, 10),
         (3, 11),
-        (6, 12),
+        (3, 12),
+        (6, 13),
+        (7, 14),
         # chat: bob
-        (5, 13),
-        (5, 14),
+        (5, 15),
+        (5, 16),
     ]
     test_db_cursor.executemany(
         "INSERT INTO chat_message_join VALUES(?, ?)", chats_messages

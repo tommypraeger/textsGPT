@@ -17,7 +17,7 @@ def test_clean_phone_number__success(phone_number: str):
     """
     Test that clean_phone_number works in successful case.
     """
-    assert Contact.clean_phone_number(phone_number) == "1234567890"
+    assert Contact.clean_and_verify_phone_number(phone_number) == "1234567890"
 
 
 @pytest.mark.parametrize(
@@ -29,7 +29,7 @@ def test_clean_phone_number__too_short(phone_number: str):
     Test that clean_phone_number raises an error when the number is too short.
     """
     with pytest.raises(ValueError):
-        Contact.clean_phone_number(phone_number)
+        Contact.clean_and_verify_phone_number(phone_number)
 
 
 @pytest.mark.parametrize(
@@ -41,7 +41,7 @@ def test_clean_phone_number__too_long(phone_number: str):
     Test that clean_phone_number raises an error when the number is too long.
     """
     with pytest.raises(ValueError):
-        Contact.clean_phone_number(phone_number)
+        Contact.clean_and_verify_phone_number(phone_number)
 
 
 @pytest.mark.parametrize(
@@ -53,16 +53,16 @@ def test_clean_phone_number__not_a_number(phone_number: str):
     This assumes email addresses are not supported, though it's possible they are used to end texts.
     """
     with pytest.raises(ValueError):
-        Contact.clean_phone_number(phone_number)
+        Contact.clean_and_verify_phone_number(phone_number)
 
 
 def test_contact__create_success():
     """
     Test normal contact creation sets attributes as expected.
     """
-    c = Contact("name", "(123)456-7890")
+    c = Contact("name", ["(123)456-7890"])
     assert c.name == "name"
-    assert c.phone_number == "1234567890"
+    assert c.addresses == ["1234567890"]
 
 
 def test_contact__create_failed_bad_phone_number():
@@ -70,14 +70,20 @@ def test_contact__create_failed_bad_phone_number():
     Test that errors in clean_phone_number get passed through to Contact initialization.
     """
     with pytest.raises(ValueError):
-        Contact("name", "abc123")
+        Contact("name", ["abc123"])
+
+
+def test_contact__create_failed_no_addresses():
+    with pytest.raises(ValueError) as e:
+        Contact("name", [])
+    assert "at least 1 address" in str(e.value)
 
 
 def test_contact__contact_not_found(test_db: sqlite3.Cursor):
     """
     Test that correct error is thrown when contact ID(s) can't be found.
     """
-    c = Contact("name", "(987)654-3210")
+    c = Contact("name", ["(987)654-3210"])
     with pytest.raises(ValueError) as e:
         c.get_contact_ids(test_db)
     assert "not found" in str(e.value)
@@ -87,7 +93,7 @@ def test_contact__single_contact_id(test_db: sqlite3.Cursor):
     """
     Test that a single contact ID will be found.
     """
-    c = Contact("name", "1(100)000-0000")
+    c = Contact("name", ["1(100)000-0000"])
     contact_ids = c.get_contact_ids(test_db)
     assert contact_ids == ["2"]
 
@@ -96,6 +102,18 @@ def test_contact__multiple_contact_ids(test_db: sqlite3.Cursor):
     """
     Test that multiple contact IDs will be found.
     """
-    c = Contact("name", "(123)456-7890")
+    c = Contact("Alice", ["(123)456-7890"])
     contact_ids = c.get_contact_ids(test_db)
     assert contact_ids == ["1", "4"]
+
+
+def test_contact_email(test_db: sqlite3.Cursor):
+    c = Contact("Alice", ["alice@email.com"])
+    contact_ids = c.get_contact_ids(test_db)
+    assert contact_ids == ["3"]
+
+
+def test_contact__multiple_addresses(test_db: sqlite3.Cursor):
+    c = Contact("Alice", ["(123)456-7890", "alice@email.com"])
+    contact_ids = c.get_contact_ids(test_db)
+    assert contact_ids == ["1", "4", "3"]

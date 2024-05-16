@@ -22,11 +22,12 @@ CHATS: dict[str, GroupChat | IndividualChat] = {
     "my groupchat": GroupChat(
         name="my groupchat",
         members=[
-            Contact("Alice", "(123)456-7890"),
-            Contact("Bob", "987-654-3210"),
-            Contact("Alice", "1(314)159-2653"),
-            Contact("Alice", "1123581321"),
+            Contact("Alice", ["(123)456-7890"]),
+            Contact("Bob", ["987-654-3210"]),
+            Contact("Carol", ["1(314)159-2653", "carol@email.com"]),
+            Contact("Dan", ["1123581321", "dan@email.com", "dan2@email.com"]),
+            Contact("Erin", ["erin@email.com"]),
         ],
     ),
-    "Alice": IndividualChat(other_person=Contact("Alice", "(123)456-7890")),
+    "Alice": IndividualChat(other_person=Contact("Alice", ["(123)456-7890"])),
 }

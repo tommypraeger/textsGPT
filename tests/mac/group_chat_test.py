@@ -12,8 +12,8 @@ from textsgpt.mac.group_chat import GroupChat
 
 from ..utils import assert_dataframes_equal
 
-alice = Contact("Alice", "(123)456-7890")
-bob = Contact("Bob", "100-000-0000")
+alice = Contact("Alice", ["(123)456-7890", "alice@email.com"])
+bob = Contact("Bob", ["100-000-0000"])
 
 
 def test_get_chat_ids__chat_not_found(test_db: sqlite3.Cursor):
@@ -95,6 +95,7 @@ def test_load_messages__name2(
                 ["Bob", "hello u and a", "21", "0"],
                 ["Alice", "Loved “hello u and a”", "31", "2000"],
                 ["unknown@email.com", "hello -anonymous", "41", "0"],
+                ["Alice", "hello from my email", "51", "0"],
             ],
             columns=["sender", "text", "time", "type"],
         ),

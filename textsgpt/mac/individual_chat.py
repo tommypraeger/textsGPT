@@ -73,19 +73,20 @@ class IndividualChat:
                 List of chat IDs for this contact.
                 There may be more than one chat ID for each chat.
         """
-        query = f"""
-        SELECT ROWID
-        FROM chat
-        WHERE chat_identifier like "%{self.other_person.phone_number}%"
-        """
-        chat_db.execute(query)
-        chat_ids = chat_db.fetchall()
-        if len(chat_ids) == 0:
-            raise ValueError(
-                f'chat for "{self.other_person.name}" not found in the chat DB.'
-            )
-        # each row is a singleton tuple
-        return [str(chat_id[0]) for chat_id in chat_ids]
+        chat_ids: list[str] = []
+        for address in self.other_person.addresses:
+            query = f"""
+            SELECT ROWID
+            FROM chat
+            WHERE chat_identifier like "%{address}%"
+            """
+            chat_db.execute(query)
+            chat_ids_for_address = chat_db.fetchall()
+            if len(chat_ids_for_address) == 0:
+                raise ValueError(f'chat for "{address}" not found in the chat DB.')
+            # each row of sql response is a singleton tuple
+            chat_ids.extend([str(chat_id[0]) for chat_id in chat_ids_for_address])
+        return chat_ids
 
     def get_message_df(self, chat_db: sqlite3.Cursor, chat_ids: list[str]):
         """

@@ -26,11 +26,13 @@ test_chats = {
     "name": GroupChat(
         name="name",
         members=[
-            Contact("Alice", "(123)456-7890"),
-            Contact("Bob", "100-000-0000"),
+            Contact("Alice", ["(123)456-7890", "alice@email.com"]),
+            Contact("Bob", ["100-000-0000"]),
         ],
     ),
-    "alice": IndividualChat(other_person=Contact("Alice", "(123)456-7890")),
+    "alice": IndividualChat(
+        other_person=Contact("Alice", ["(123)456-7890", "alice@email.com"])
+    ),
 }
 
 
@@ -176,6 +178,7 @@ def test_load_messages__individual_chat():
                 ["You", "hello alice", "2", "0"],
                 ["Alice", "hello user", "12", "0"],
                 ["Alice", "Loved “hello alice”", "22", "2000"],
+                ["Alice", "hello from my email", "32", "0"],
             ],
             columns=["sender", "text", "time", "type"],
         ),
@@ -195,6 +198,7 @@ def test_load_messages__individual_chat_custom_user_name():
                 ["Me", "hello alice", "2", "0"],
                 ["Alice", "hello user", "12", "0"],
                 ["Alice", "Loved “hello alice”", "22", "2000"],
+                ["Alice", "hello from my email", "32", "0"],
             ],
             columns=["sender", "text", "time", "type"],
         ),
