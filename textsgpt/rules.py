@@ -6,8 +6,10 @@ followed by an arbitrary number of arguments
 and returns the resulting messages DataFrame.
 """
 
+import re
 from dataclasses import dataclass, field
 from typing import Any, Callable
+
 import pandas as pd
 
 
@@ -67,3 +69,14 @@ def remove_non_standard_imessages(messages: pd.DataFrame) -> pd.DataFrame:
     3005: removed question reaction
     """
     return messages[messages["type"] == "0"]
+
+
+def remove_links(messages: pd.DataFrame) -> pd.DataFrame:
+    """
+    Remove links from messages. Does not remove the whole message.
+    If this rule is executed by remove_non_alphanumeric_messages,
+    messages that are links and nothing else will be removed.
+    """
+    link_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\), ]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+    messages["text"] = [re.sub(link_regex, "", str(text)) for text in messages["text"]]  # type: ignore
+    return messages

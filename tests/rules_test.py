@@ -83,3 +83,33 @@ def test_remove_non_standard_imessages(
         pd.DataFrame(expected),
         rules.remove_non_standard_imessages(pd.DataFrame(initial)),
     )
+
+
+@pytest.mark.parametrize(
+    "initial,expected",
+    [
+        ({"text": ["hello"]}, {"text": ["hello"]}),
+        ({"text": ["https://github.com/tommypraeger/textsGPT"]}, {"text": [""]}),
+        (
+            {
+                "text": [
+                    "look at this link: https://github.com/tommypraeger/textsGPT",
+                    "nice",
+                ]
+            },
+            {"text": ["look at this link: ", "nice"]},
+        ),  # the rest of the text is retained
+        (
+            {"text": ["github.com"]},
+            {"text": ["github.com"]},
+        ),  # not quite counting this as link
+    ],
+)
+def test_remove_links(initial: dict[str, Any], expected: dict[str, Any]):
+    """
+    Test a rule that removes links from messages.
+    """
+    assert_dataframes_equal(
+        pd.DataFrame(expected),
+        rules.remove_links(pd.DataFrame(initial)),
+    )
