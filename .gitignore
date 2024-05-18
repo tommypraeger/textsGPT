@@ -10,4 +10,4 @@ venv
 
 # Project
 .coverage
-messages.csv
+data

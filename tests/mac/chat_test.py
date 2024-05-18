@@ -59,6 +59,8 @@ def with_patches(func: Callable[..., None]):
             patch(
                 "textsgpt.mac.chat.Chat.get_db_file_path", wraps=get_test_db_file_path
             ),
+            patch("pathlib.Path.mkdir"),
+            patch("pandas.DataFrame.to_csv"),
         ):
             func(*args, **kwargs)
 
@@ -81,6 +83,25 @@ def test_wrong_platform():
         with pytest.raises(OSError) as e:
             Chat("name")
         assert "Not Darwin" in str(e.value)
+
+
+@pytest.mark.parametrize(
+    "chat_name,expected_data_dir",
+    [
+        ("name", "name"),
+        ("name with spaces", "name_with_spaces"),
+        ("name-with-dashes", "namewithdashes"),
+        ("name_with_underscores", "name_with_underscores"),
+        ("123", "123"),
+        ("?", str(hash("?"))),
+    ],
+)
+@with_patches
+def test_create_data_dir(chat_name: str, expected_data_dir: str):
+    """
+    Test the data directory will be created at the right directories for a given chat name.
+    """
+    assert Chat.create_data_dir(chat_name) == f"data/{expected_data_dir}"
 
 
 @with_patches

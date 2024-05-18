@@ -41,6 +41,7 @@ def remove_non_alphanumeric_messages(messages: pd.DataFrame) -> pd.DataFrame:
     (i.e. the characters don't all have to be alphanumeric).
     """
     # using \w to represent alphanumeric characters
+    # \w also includes underscores
     return messages[messages["text"].str.contains(r"\w")]  # type: ignore
 
 

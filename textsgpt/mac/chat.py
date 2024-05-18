@@ -5,6 +5,7 @@ Server as a wrapper for a group chat or individual chat.
 
 import pathlib
 import platform
+import re
 import sqlite3
 
 import pandas as pd
@@ -33,6 +34,8 @@ class Chat:
             sqlite cursor used to interact with the chat database on Mac.
         messages (pd.DataFrame):
             pandas DataFrame to hold the messages from the chat.
+        data_dir (str):
+            Directory containing the saved chat data.
     """
 
     def __init__(self, chat_name: str, user_name: str = "You"):
@@ -41,12 +44,18 @@ class Chat:
                 f"Can only read messages on Mac :/. "
                 f"Detected that you are using {platform.system()}."
             )
+
+        # set up required components
         try:
             self.chat = CHATS[chat_name]
         except KeyError as e:
             raise KeyError(f"Didn't find chat {chat_name}") from e
         self.chat.user_name = user_name
         self.chat_db = self.connect_to_db()
+
+        # set up saved directories
+        self.data_dir = self.create_data_dir(chat_name)
+
         self.messages = self.load_messages()
 
     def __del__(self):
@@ -58,6 +67,39 @@ class Chat:
         except AttributeError:
             # assume chat_db failed to be initialized
             pass
+
+    @staticmethod
+    def create_data_dir(chat_name: str):
+        """
+        Create directory for storing chat data if it does not exist.
+        This directory will be used to store messages and embeddings
+        to prevent re-pulling data.
+        The directory name uses the chat name, but
+        spaces are replaced with underscores
+        and non-alphanumeric characters (except underscores) are removed.
+        If there are no non-alphanumeric characters in the chat name,
+        the directory uses a hash of the chat name.
+
+        Args:
+            chat_name (str):
+                The name of the chat.
+
+        Returns:
+            str:
+                The relative path of the data directory for this chat.
+        """
+        # replace spaces with underscores
+        friendly_name = re.sub(r"\s+", "_", chat_name)
+        # replace non-alphanumeric characters with nothing
+        friendly_name = re.sub(r"[\W]+", "", friendly_name)
+
+        if len(friendly_name) == 0:
+            # use a hash as backup
+            friendly_name = str(hash(chat_name))
+
+        data_dir = f"data/{friendly_name}"
+        pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
+        return data_dir
 
     @staticmethod
     def get_db_file_path():
@@ -110,7 +152,9 @@ class Chat:
             pd.DataFrame:
                 pandas DataFrame containing the messages of the chat.
         """
-        return self.chat.load_messages(self.chat_db)
+        messages = self.chat.load_messages(self.chat_db)
+        messages.to_csv(f"{self.data_dir}/messages.csv")
+        return messages
 
     def apply_rules(self, *rules: Rule):
         """
