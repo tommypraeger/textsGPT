@@ -22,6 +22,10 @@ class GroupChat:
         user_name (str):
             Your name. Used to label messages you sent.
             Defaults to "You".
+        unknown_addresses (dict[str, str]):
+            Contains a mapping of contact IDs to address (phone number or email)
+            for contact IDs that have associated messages in this group chat
+            but have not explicitly been added as contacts.
     """
 
     def __init__(self, name: str, members: list[Contact]):
@@ -41,6 +45,7 @@ class GroupChat:
         self.name = name
         self.members = members
         self.user_name = "You"
+        self.unknown_addresses: dict[str, str] = {}
 
     def load_messages(self, chat_db: sqlite3.Cursor):
         """
@@ -67,26 +72,17 @@ class GroupChat:
 
         # get messages and replace contact IDs with names
         message_df = self.get_message_df(chat_db, chat_ids)
-        known_missing_contacts: set[str] = set()
-        for row in range(len(message_df)):
-            sender_id = str(message_df.loc[row, "sender"])
-            try:
-                sender = contact_id_map[sender_id]
-                message_df.loc[row, "sender"] = sender
-            except KeyError:
-                # if a contact hasn't been provided for this sender,
-                # use the handle (phone number or email) associated with the sender instead
-                missing_contact = self.get_handle_for_contact_id(chat_db, sender_id)
-                message_df.loc[row, "sender"] = missing_contact
-
-                # save the missing contact value in case it pops up again
-                if missing_contact not in known_missing_contacts:
-                    print(
-                        f"[WARN] Found message(s) from unknown sender: {missing_contact}. "
-                        "Please make sure all chat members are added as Contacts."
-                    )
-                    contact_id_map[sender_id] = missing_contact
-                    known_missing_contacts.add(missing_contact)
+        message_df["sender"] = message_df["sender"].apply(  # type: ignore
+            lambda sender_id: contact_id_map.get(sender_id)
+            # if the sender contact_id isn't found, use the address directly
+            or self.get_address_for_contact_id(chat_db, sender_id)
+        )
+        if len(self.unknown_addresses) > 0:
+            print(
+                f"[WARN] Found messages from {len(self.unknown_addresses)} unknown address(es). "
+                "Please make sure all chat members are added as Contacts. "
+                f"Unknown addresses: {', '.join(self.unknown_addresses.values())}"
+            )
 
         return message_df
 
@@ -116,12 +112,12 @@ class GroupChat:
         # each row is a singleton tuple
         return [str(chat_id[0]) for chat_id in chat_ids]
 
-    def get_handle_for_contact_id(
+    def get_address_for_contact_id(
         self, chat_db: sqlite3.Cursor, contact_id: str
     ) -> str:
         """
-        Find the handle for a given contact ID (iMessage internal concept).
-        The handle will be the phone number or email that iMessage associates with the contact.
+        Find the address for a given contact ID (iMessage internal concept).
+        The address will be the phone number or email that iMessage associates with the contact.
         This is used to find a meaningful way to label the sender of a message
         for which there was no associated `Contact` provided.
 
@@ -133,15 +129,24 @@ class GroupChat:
 
         Returns:
             str:
-                The handle (phone number or email) corresponding to the given contact ID.
+                The address (phone number or email) corresponding to the given contact ID.
         """
+        # avoid repeating query for every message sent by a contact ID
+        if contact_id in self.unknown_addresses:
+            return self.unknown_addresses[contact_id]
+
         query = f"""
         SELECT id
         FROM handle
         WHERE ROWID={contact_id}
         """
         chat_db.execute(query)
-        return str(chat_db.fetchone()[0])  # fetchone will return a singleton tuple
+        address = str(chat_db.fetchone()[0])  # fetchone will return a singleton tuple
+
+        # cache address for this contact ID
+        self.unknown_addresses[contact_id] = address
+
+        return address
 
     def get_message_df(
         self, chat_db: sqlite3.Cursor, chat_ids: list[str]

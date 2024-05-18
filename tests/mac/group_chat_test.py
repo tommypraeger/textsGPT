@@ -96,10 +96,43 @@ def test_load_messages__name2(
                 ["Alice", "Loved “hello u and a”", "31", "2000"],
                 ["unknown@email.com", "hello -anonymous", "41", "0"],
                 ["Alice", "hello from my email", "51", "0"],
+                ["Alice", "hello from my email again", "61", "0"],
             ],
             columns=["sender", "text", "time", "type"],
         ),
         messages,
     )
     assert "[WARN]" in out
+    assert "1 unknown address" in out
     assert "unknown@email.com" in out
+
+
+def test_load_messages__multiple_unknown_addresses(
+    test_db: sqlite3.Cursor, capsys: pytest.CaptureFixture[str]
+):
+    """
+    Tests that messages can be loaded from a group chat into a pandas DataFrame.
+    The group chat in this test has messages from 2 senders not associated with a contact.
+    """
+    alice_without_email = Contact("Alice", ["(123)456-7890"])
+    gc = GroupChat("name2", members=[alice_without_email, bob])
+    messages = gc.load_messages(test_db)
+    out, _ = capsys.readouterr()
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["You", "hello a and b", "1", "0"],
+                ["Alice", "hello u and b", "11", "0"],
+                ["Bob", "hello u and a", "21", "0"],
+                ["Alice", "Loved “hello u and a”", "31", "2000"],
+                ["unknown@email.com", "hello -anonymous", "41", "0"],
+                ["alice@email.com", "hello from my email", "51", "0"],
+                ["alice@email.com", "hello from my email again", "61", "0"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        messages,
+    )
+    assert "[WARN]" in out
+    assert "2 unknown address(es)" in out
+    assert "unknown@email.com, alice@email.com\n" in out
