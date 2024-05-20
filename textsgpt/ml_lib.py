@@ -13,6 +13,19 @@ from textsgpt.mac.chat import Chat
 
 
 def create_faiss_index(chat: Chat) -> FAISS:
+    """
+    Create a FAISS index that embeds messages in chat.
+    If a FAISS index already exists for this chat, add messages into the FAISS index.
+
+    Args:
+        chat (Chat):
+            The chat containing messages that should be embedded into a FAISS index.
+            The chat also defines where its data (such as the FAISS index) should be preserved.
+
+    Returns:
+        FAISS:
+            FAISS index that embeds messages of the chat.
+    """
     # split texts to be embedded in FAISS index
     texts = split_texts(chat)
 
@@ -40,6 +53,17 @@ def create_faiss_index(chat: Chat) -> FAISS:
 
 
 def split_texts(chat: Chat) -> list[str]:
+    """
+    Split texts into chunks to be embedded into the FAISS index.
+
+    Args:
+        chat (Chat):
+            The chat containing the messages.
+
+    Returns:
+        list[str]:
+            Chunks of messages.
+    """
     # combine sender and message into one field
     texts_series = chat.messages["sender"] + ": " + chat.messages["text"]  # type: ignore
     # remove newlines within messages
