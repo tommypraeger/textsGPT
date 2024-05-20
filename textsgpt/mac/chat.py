@@ -34,8 +34,13 @@ class Chat:
             sqlite cursor used to interact with the chat database on Mac.
         messages (pd.DataFrame):
             pandas DataFrame to hold the messages from the chat.
+            If there were earlier saved messages for this chat,
+            `self.messages` only holds new messages that are more recent than the earlier messages.
         data_dir (str):
             Directory containing the saved chat data.
+        messages_csv (str):
+            Location of the CSV containing messages for this chat
+            if they have been saved from an earlier execution.
     """
 
     def __init__(self, chat_name: str, user_name: str = "You"):
@@ -55,6 +60,7 @@ class Chat:
 
         # set up saved directories
         self.data_dir = self.create_data_dir(chat_name)
+        self.messages_csv = f"{self.data_dir}/messages.csv"
 
         self.messages = self.load_messages()
 
@@ -149,33 +155,24 @@ class Chat:
         Uses the respective method of the input chat class.
         If messages for this chat have been loaded previously,
         only return new messages since the last time these messages were loaded.
-        The entire set of messages (old and new) will be saved to a CSV for future executions.
 
         Returns:
             pd.DataFrame:
                 pandas DataFrame containing the messages of the chat.
                 If existing messages are found for this chat, only new messages are returned.
         """
-        # location of the CSV file containing messages for this chat
-        messages_csv = f"{self.data_dir}/messages.csv"
-
-        if pathlib.Path(messages_csv).exists():
+        if pathlib.Path(self.messages_csv).exists():
             # load messages more recent than the last of the old messages
-            earlier_messages = pd.read_csv(messages_csv)  # type: ignore
+            earlier_messages = pd.read_csv(self.messages_csv)  # type: ignore
             latest_message_time = str(earlier_messages.iloc[-1]["time"])  # type: ignore
             new_messages = self.chat.load_messages(
                 self.chat_db, since=latest_message_time
             )
-            # write all messages to CSV, but only return new_messages from the function
-            all_messages = pd.concat([earlier_messages, new_messages], axis=0)  # type: ignore
-            all_messages.to_csv(messages_csv, index=False)
             return new_messages
 
         # no previous messages for this chat found
         # load them all
-        messages = self.chat.load_messages(self.chat_db)
-        messages.to_csv(messages_csv, index=False)
-        return messages
+        return self.chat.load_messages(self.chat_db)
 
     def apply_rules(self, *rules: Rule):
         """
@@ -192,3 +189,19 @@ class Chat:
             kwargs = rule.kwargs
             self.messages = func(self.messages, **kwargs)
             self.messages.reset_index(drop=True, inplace=True)
+
+    def save_messages(self):
+        """
+        Save messages to a CSV file.
+        Combine messages with earlier saved messages if necessary.
+        """
+        if pathlib.Path(self.messages_csv).exists():
+            # there are messages that have been saved from an earlier execution
+            earlier_messages = pd.read_csv(self.messages_csv)  # type: ignore
+
+            # combine earlier messages with the messages that were pulled during this execution
+            all_messages = pd.concat([earlier_messages, self.messages], axis=0)  # type: ignore
+            all_messages.to_csv(self.messages_csv, index=False)
+        else:
+            # no previous messages for this chat found
+            self.messages.to_csv(self.messages_csv, index=False)

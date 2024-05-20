@@ -19,3 +19,4 @@ chat.apply_rules(
     Rule(remove_non_alphanumeric_messages),
 )
 print(chat.messages.head(n=5))
+chat.save_messages()
