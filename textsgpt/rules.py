@@ -42,6 +42,8 @@ def remove_non_alphanumeric_messages(messages: pd.DataFrame) -> pd.DataFrame:
     """
     # using \w to represent alphanumeric characters
     # \w also includes underscores
+    if messages.empty:
+        return messages
     return messages[messages["text"].str.contains(r"\w")]  # type: ignore
 
 
@@ -69,6 +71,8 @@ def remove_non_standard_imessages(messages: pd.DataFrame) -> pd.DataFrame:
     3004: removed emphasize reaction
     3005: removed question reaction
     """
+    if messages.empty:
+        return messages
     return messages[messages["type"] == "0"]
 
 

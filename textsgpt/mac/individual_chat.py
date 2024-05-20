@@ -32,20 +32,23 @@ class IndividualChat:
         self.other_person = other_person
         self.user_name = "You"
 
-    def load_messages(self, chat_db: sqlite3.Cursor):
+    def load_messages(self, chat_db: sqlite3.Cursor, since: str = ""):
         """
         Load messages from database for this individual chat into a pandas DataFrame
 
         Args:
             chat_db (sqlite3.Cursor):
                 Connection to the chat DB.
+            since (str):
+                Timestamp. Only messages newer than `since` will be loaded.
+                Defaults to empty string, which means all messages should be loaded.
 
         Returns:
             pandas.DataFrame:
                 pandas DataFrame containing the messages of the chat.
         """
         chat_ids = self.get_chat_ids(chat_db)
-        message_df = self.get_message_df(chat_db, chat_ids)
+        message_df = self.get_message_df(chat_db, chat_ids, since)
 
         # replace leftmost column is_from_me with sender
         senders = message_df["is_from_me"].apply(  # type: ignore
@@ -88,7 +91,7 @@ class IndividualChat:
             chat_ids.extend([str(chat_id[0]) for chat_id in chat_ids_for_address])
         return chat_ids
 
-    def get_message_df(self, chat_db: sqlite3.Cursor, chat_ids: list[str]):
+    def get_message_df(self, chat_db: sqlite3.Cursor, chat_ids: list[str], since: str):
         """
         Read the messages from the DB into a Pandas DataFrame
 
@@ -97,17 +100,22 @@ class IndividualChat:
                 Connection to the chat DB.
             chat_ids (list[str]):
                 List of chat IDs (iMessage internal concept) that correspond to this chat.
+            since (str):
+                Timestamp. Only messages newer than `since` will be loaded.
+                If `since` is an empty string, load all messages.
 
         Returns:
             pandas.DataFrame:
                 DataFrame containing raw message data from the chat.
         """
+        since_filter = f"WHERE date > {since}" if since else ""
         query = f"""
         SELECT is_from_me, text, date, associated_message_type
         FROM message T1
         INNER JOIN chat_message_join T2
             ON T2.chat_id IN ({",".join([str(chat_id) for chat_id in chat_ids])})
             AND T1.ROWID=T2.message_id
+        {since_filter}
         ORDER BY T1.date
         """
         chat_db.execute(query)

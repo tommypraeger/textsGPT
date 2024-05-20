@@ -46,6 +46,7 @@ def test_rule_initialization(
 @pytest.mark.parametrize(
     "initial,expected",
     [
+        ({"text": []}, {"text": []}),
         ({"text": ["hello", ""]}, {"text": ["hello"]}),
         ({"text": [""]}, {"text": []}),
         ({"text": ["12345", "   ", " ", "hello", ""]}, {"text": ["12345", "hello"]}),
@@ -67,6 +68,7 @@ def test_remove_non_alphanumeric_messages__empty_message(
 @pytest.mark.parametrize(
     "initial,expected",
     [
+        ({"text": []}, {"text": []}),
         ({"type": ["0", "0"]}, {"type": ["0", "0"]}),
         ({"type": ["0", "2000", "0"]}, {"type": ["0", "0"]}),
         ({"type": ["2001"]}, {"type": []}),
@@ -88,6 +90,7 @@ def test_remove_non_standard_imessages(
 @pytest.mark.parametrize(
     "initial,expected",
     [
+        ({"text": []}, {"text": []}),
         ({"text": ["hello"]}, {"text": ["hello"]}),
         ({"text": ["https://github.com/tommypraeger/textsGPT"]}, {"text": [""]}),
         (

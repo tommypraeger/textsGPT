@@ -47,13 +47,16 @@ class GroupChat:
         self.user_name = "You"
         self.unknown_addresses: dict[str, str] = {}
 
-    def load_messages(self, chat_db: sqlite3.Cursor):
+    def load_messages(self, chat_db: sqlite3.Cursor, since: str = ""):
         """
         Load messages from database for this group chat into a pandas DataFrame
 
         Args:
             chat_db (sqlite3.Cursor):
                 Connection to the chat DB.
+            since (str):
+                Timestamp. Only messages newer than `since` will be loaded.
+                Defaults to empty string, which means all messages should be loaded.
 
         Returns:
             pandas.DataFrame:
@@ -71,7 +74,7 @@ class GroupChat:
         chat_ids = self.get_chat_ids(chat_db)
 
         # get messages and replace contact IDs with names
-        message_df = self.get_message_df(chat_db, chat_ids)
+        message_df = self.get_message_df(chat_db, chat_ids, since)
         message_df["sender"] = message_df["sender"].apply(  # type: ignore
             lambda sender_id: contact_id_map.get(sender_id)
             # if the sender contact_id isn't found, use the address directly
@@ -149,7 +152,7 @@ class GroupChat:
         return address
 
     def get_message_df(
-        self, chat_db: sqlite3.Cursor, chat_ids: list[str]
+        self, chat_db: sqlite3.Cursor, chat_ids: list[str], since: str
     ) -> pd.DataFrame:
         """
         Read the messages from the DB into a Pandas DataFrame
@@ -159,17 +162,22 @@ class GroupChat:
                 Connection to the chat DB.
             chat_ids (list[str]):
                 List of chat IDs (iMessage internal concept) that correspond to this chat.
+            since (str):
+                Timestamp. Only messages newer than `since` will be loaded.
+                If `since` is an empty string, load all messages.
 
         Returns:
             pandas.DataFrame:
                 DataFrame containing raw message data from the chat.
         """
+        since_filter = f"WHERE date > {since}" if since else ""
         query = f"""
         SELECT handle_id, text, date, associated_message_type
         FROM message T1
         INNER JOIN chat_message_join T2
             ON T2.chat_id IN ({",".join(chat_ids)})
             AND T1.ROWID=T2.message_id
+        {since_filter}
         ORDER BY T1.date
         """
         chat_db.execute(query)

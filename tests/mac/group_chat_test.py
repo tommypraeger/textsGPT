@@ -136,3 +136,36 @@ def test_load_messages__multiple_unknown_addresses(
     assert "[WARN]" in out
     assert "2 unknown address(es)" in out
     assert "unknown@email.com, alice@email.com\n" in out
+
+
+def test_load_messages__since_timestamp(test_db: sqlite3.Cursor):
+    """
+    Test that only messages since the provided timestamp will be loaded.
+    """
+    gc = GroupChat("name", members=[alice, bob])
+
+    messages = gc.load_messages(test_db, since="9")
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["Alice", "hello user and bob", "10", "0"],
+                ["Bob", "hello user and alice", "20", "0"],
+                ["Alice", "Loved “hello user and alice”", "30", "2000"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        messages,
+    )
+
+    # messages exactly at the provided timestamp are excluded
+    messages = gc.load_messages(test_db, since="10")
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["Bob", "hello user and alice", "20", "0"],
+                ["Alice", "Loved “hello user and alice”", "30", "2000"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        messages,
+    )

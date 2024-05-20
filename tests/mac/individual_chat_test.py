@@ -91,3 +91,36 @@ def test_load_messages__single_contact_id(test_db: sqlite3.Cursor):
         ),
         messages,
     )
+
+
+def test_load_messages__since_timestamp(test_db: sqlite3.Cursor):
+    """
+    Test that only messages since the provided timestamp will be loaded.
+    """
+    chat = IndividualChat(other_person=alice)
+
+    messages = chat.load_messages(test_db, since="11")
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["Alice", "hello user", "12", "0"],
+                ["Alice", "Loved “hello alice”", "22", "2000"],
+                ["Alice", "hello from my email", "32", "0"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        messages,
+    )
+
+    # messages exactly at the provided timestamp are excluded
+    messages = chat.load_messages(test_db, since="12")
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["Alice", "Loved “hello alice”", "22", "2000"],
+                ["Alice", "hello from my email", "32", "0"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        messages,
+    )

@@ -227,6 +227,71 @@ def test_load_messages__individual_chat_custom_user_name():
     )
 
 
+@with_patches
+@patch("pathlib.Path.exists", return_value=True)
+@patch(
+    "pandas.read_csv",
+    return_value=pd.DataFrame(
+        [
+            ["You", "hello alice and bob", "0", "0"],
+            ["Alice", "hello user and bob", "10", "0"],
+        ],
+        columns=["sender", "text", "time", "type"],
+    ),
+)
+def test_load_messages__group_chat_since_timestamp(
+    mocked_func1, mocked_func2  # type: ignore  pylint: disable=unused-argument
+):
+    """
+    Test that only messages since the provided timestamp will be loaded for a group chat.
+    """
+    chat = Chat("name")
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["Bob", "hello user and alice", "20", "0"],
+                ["Alice", "Loved “hello user and alice”", "30", "2000"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        chat.messages,
+    )
+
+
+@with_patches
+@patch("pathlib.Path.exists", return_value=True)
+@patch(
+    "pandas.read_csv",
+    return_value=pd.DataFrame(
+        [
+            ["You", "hello alice", "2", "0"],
+            ["Alice", "hello user", "12", "0"],
+        ],
+        columns=["sender", "text", "time", "type"],
+    ),
+)
+def test_load_messages__individual_chat_since_timestamp(
+    mocked_func1, mocked_func2  # type: ignore  pylint: disable=unused-argument
+):
+    """
+    Test that only messages since the provided timestamp will be loaded for an individual chat.
+    """
+    chat = Chat("alice")
+    assert_dataframes_equal(
+        pd.DataFrame(
+            [
+                ["Alice", "Loved “hello alice”", "22", "2000"],
+                ["Alice", "hello from my email", "32", "0"],
+            ],
+            columns=["sender", "text", "time", "type"],
+        ),
+        chat.messages,
+    )
+
+
+### Rules ###
+
+
 def remove_member(messages: pd.DataFrame, member: str) -> pd.DataFrame:
     """
     Simple rule used for testing.

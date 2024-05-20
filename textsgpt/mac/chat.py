@@ -147,13 +147,34 @@ class Chat:
         """
         Load messages from chat database on Mac into a pandas DataFrame.
         Uses the respective method of the input chat class.
+        If messages for this chat have been loaded previously,
+        only return new messages since the last time these messages were loaded.
+        The entire set of messages (old and new) will be saved to a CSV for future executions.
 
         Returns:
             pd.DataFrame:
                 pandas DataFrame containing the messages of the chat.
+                If existing messages are found for this chat, only new messages are returned.
         """
+        # location of the CSV file containing messages for this chat
+        messages_csv = f"{self.data_dir}/messages.csv"
+
+        if pathlib.Path(messages_csv).exists():
+            # load messages more recent than the last of the old messages
+            earlier_messages = pd.read_csv(messages_csv)  # type: ignore
+            latest_message_time = str(earlier_messages.iloc[-1]["time"])  # type: ignore
+            new_messages = self.chat.load_messages(
+                self.chat_db, since=latest_message_time
+            )
+            # write all messages to CSV, but only return new_messages from the function
+            all_messages = pd.concat([earlier_messages, new_messages], axis=0)  # type: ignore
+            all_messages.to_csv(messages_csv, index=False)
+            return new_messages
+
+        # no previous messages for this chat found
+        # load them all
         messages = self.chat.load_messages(self.chat_db)
-        messages.to_csv(f"{self.data_dir}/messages.csv")
+        messages.to_csv(messages_csv, index=False)
         return messages
 
     def apply_rules(self, *rules: Rule):
