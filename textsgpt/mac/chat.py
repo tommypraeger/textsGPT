@@ -32,7 +32,7 @@ class Chat:
             Representation of either a group chat or individual chat that this class wraps.
         chat_db (sqlite3.Cursor):
             sqlite cursor used to interact with the chat database on Mac.
-        messages (pd.DataFrame):
+        messages (pandas.DataFrame):
             pandas DataFrame to hold the messages from the chat.
             If there were earlier saved messages for this chat,
             `self.messages` only holds new messages that are more recent than the earlier messages.

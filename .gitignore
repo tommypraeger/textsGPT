@@ -11,3 +11,4 @@ venv
 # Project
 .coverage
 data
+.env

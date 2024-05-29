@@ -11,7 +11,7 @@ from .rules import (
     remove_non_alphanumeric_messages,
     remove_non_standard_imessages,
 )
-from .ml_lib import create_faiss_index
+from .llm_lib import create_faiss_index, gpt_completion
 
 chat = Chat(sys.argv[1], sys.argv[2])
 chat.apply_rules(
@@ -20,5 +20,7 @@ chat.apply_rules(
     Rule(remove_non_alphanumeric_messages),
 )
 print(chat.messages.head(n=5))
-create_faiss_index(chat)
+faiss_index = create_faiss_index(chat)
 chat.save_messages()
+response = gpt_completion(sys.argv[3], faiss_index)
+print(response)
