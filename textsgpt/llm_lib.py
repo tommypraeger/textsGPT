@@ -115,6 +115,8 @@ def generate_context(query: str, vector_index: FAISS, num_documents: int = 10) -
     """
     docs = vector_index.similarity_search(query, k=num_documents)  # type: ignore
     context = "\n###\n".join(doc.page_content for doc in docs)
+    with open("data/contexts.txt", "a") as f:
+        f.write(f"\n\nQuery: {query}\nContext: {context}")
     return context
 
 
