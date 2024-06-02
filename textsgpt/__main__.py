@@ -14,10 +14,17 @@ from .rules import (
 from .llm_lib import create_faiss_index, gpt_completion
 
 
+if len(sys.argv) < 2:
+    raise Exception(
+        "Expected the name of the chat as the first argument to the script."
+    )
+chat_name = sys.argv[1]
+
+
 # Collect messages and set up vector index
 # If running for the first time with a big group chat,
 # setting up the index can take several minutes.
-chat = Chat(sys.argv[1])
+chat = Chat(chat_name)
 chat.apply_rules(
     Rule(remove_links),
     Rule(remove_non_standard_imessages),
@@ -32,7 +39,7 @@ print(
     f"""
 {'=' * 50}\n\n
 Hello {chat.user_name}!
-I am a chatbot trained on text messages with {sys.argv[1]}.
+I am a chatbot trained on text messages with {chat_name}.
 Ask me something about your chat. Type 'exit' to quit.
 """
 )
