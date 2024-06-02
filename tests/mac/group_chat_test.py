@@ -20,7 +20,7 @@ def test_get_chat_ids__chat_not_found(test_db: sqlite3.Cursor):
     """
     Test that get_chat_ids raises an error when the chat ID(s) can't be found.
     """
-    gc = GroupChat("fake_name", members=[alice, bob])
+    gc = GroupChat("fake_name", user_name="You", members=[alice, bob])
     with pytest.raises(ValueError) as e:
         gc.get_chat_ids(test_db)
     assert "not found" in str(e.value)
@@ -30,7 +30,7 @@ def test_get_chat_ids__single_chat_id(test_db: sqlite3.Cursor):
     """
     Test that a single chat ID will be found.
     """
-    gc = GroupChat("name2", members=[alice, bob])
+    gc = GroupChat("name2", user_name="You", members=[alice, bob])
     chat_ids = gc.get_chat_ids(test_db)
     assert chat_ids == ["2"]
 
@@ -39,7 +39,7 @@ def test_get_chat_ids__multiple_chat_ids(test_db: sqlite3.Cursor):
     """
     Test that a multiple chat IDs will be found.
     """
-    gc = GroupChat("name", members=[alice, bob])
+    gc = GroupChat("name", user_name="You", members=[alice, bob])
     chat_ids = gc.get_chat_ids(test_db)
     assert chat_ids == ["1", "4"]
 
@@ -48,7 +48,7 @@ def test_group_chat__create_success():
     """
     Test that group chat can be created successfully with expected attributes.
     """
-    gc = GroupChat(name="name", members=[alice, bob])
+    gc = GroupChat(name="name", user_name="You", members=[alice, bob])
     assert gc.name == "name"
     assert alice in gc.members
     assert bob in gc.members
@@ -61,7 +61,7 @@ def test_load_messages__name(test_db: sqlite3.Cursor):
     The group chat in this test has multiple chat IDs
     and members with single and multiple contact IDs.
     """
-    gc = GroupChat("name", members=[alice, bob])
+    gc = GroupChat("name", user_name="You", members=[alice, bob])
     messages = gc.load_messages(test_db)
     assert_dataframes_equal(
         pd.DataFrame(
@@ -84,7 +84,7 @@ def test_load_messages__name2(
     Tests that messages can be loaded from a group chat into a pandas DataFrame.
     The group chat in this test has a message from a sender not associated with a contact.
     """
-    gc = GroupChat("name2", members=[alice, bob])
+    gc = GroupChat("name2", user_name="You", members=[alice, bob])
     messages = gc.load_messages(test_db)
     out, _ = capsys.readouterr()
     assert_dataframes_equal(
@@ -115,7 +115,7 @@ def test_load_messages__multiple_unknown_addresses(
     The group chat in this test has messages from 2 senders not associated with a contact.
     """
     alice_without_email = Contact("Alice", ["(123)456-7890"])
-    gc = GroupChat("name2", members=[alice_without_email, bob])
+    gc = GroupChat("name2", user_name="You", members=[alice_without_email, bob])
     messages = gc.load_messages(test_db)
     out, _ = capsys.readouterr()
     assert_dataframes_equal(
@@ -142,7 +142,7 @@ def test_load_messages__since_timestamp(test_db: sqlite3.Cursor):
     """
     Test that only messages since the provided timestamp will be loaded.
     """
-    gc = GroupChat("name", members=[alice, bob])
+    gc = GroupChat("name", user_name="You", members=[alice, bob])
 
     messages = gc.load_messages(test_db, since="9")
     assert_dataframes_equal(

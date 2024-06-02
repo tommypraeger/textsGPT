@@ -25,13 +25,15 @@ from .conftest import TEST_DB_FILE
 test_chats = {
     "name": GroupChat(
         name="name",
+        user_name="You",
         members=[
             Contact("Alice", ["(123)456-7890", "alice@email.com"]),
             Contact("Bob", ["100-000-0000"]),
         ],
     ),
     "alice": IndividualChat(
-        other_person=Contact("Alice", ["(123)456-7890", "alice@email.com"])
+        user_name="You",
+        other_person=Contact("Alice", ["(123)456-7890", "alice@email.com"]),
     ),
 }
 
@@ -150,7 +152,7 @@ def test_load_messages__chat_not_found():
 @with_patches
 def test_load_messages__group_chat():
     """
-    Test that messages can be loaded for a group chat using the default user name.
+    Test that messages can be loaded for a group chat.
     """
     chat = Chat("name")
     assert_dataframes_equal(
@@ -168,55 +170,15 @@ def test_load_messages__group_chat():
 
 
 @with_patches
-def test_load_messages__group_chat_custom_user_name():
-    """
-    Test that messages can be loaded for a group chat using a custom user name.
-    """
-    chat = Chat("name", "Me")
-    assert_dataframes_equal(
-        pd.DataFrame(
-            [
-                ["Me", "hello alice and bob", "0", "0"],
-                ["Alice", "hello user and bob", "10", "0"],
-                ["Bob", "hello user and alice", "20", "0"],
-                ["Alice", "Loved “hello user and alice”", "30", "2000"],
-            ],
-            columns=["sender", "text", "time", "type"],
-        ),
-        chat.messages,
-    )
-
-
-@with_patches
 def test_load_messages__individual_chat():
     """
-    Test that messages can be loaded for an individual chat using the default user name.
+    Test that messages can be loaded for an individual chat.
     """
     chat = Chat("alice")
     assert_dataframes_equal(
         pd.DataFrame(
             [
                 ["You", "hello alice", "2", "0"],
-                ["Alice", "hello user", "12", "0"],
-                ["Alice", "Loved “hello alice”", "22", "2000"],
-                ["Alice", "hello from my email", "32", "0"],
-            ],
-            columns=["sender", "text", "time", "type"],
-        ),
-        chat.messages,
-    )
-
-
-@with_patches
-def test_load_messages__individual_chat_custom_user_name():
-    """
-    Test that messages can be loaded for an individual chat using a custom user name.
-    """
-    chat = Chat("alice", "Me")
-    assert_dataframes_equal(
-        pd.DataFrame(
-            [
-                ["Me", "hello alice", "2", "0"],
                 ["Alice", "hello user", "12", "0"],
                 ["Alice", "Loved “hello alice”", "22", "2000"],
                 ["Alice", "hello from my email", "32", "0"],

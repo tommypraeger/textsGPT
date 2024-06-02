@@ -28,7 +28,7 @@ class GroupChat:
             but have not explicitly been added as contacts.
     """
 
-    def __init__(self, name: str, members: list[Contact]):
+    def __init__(self, name: str, user_name: str, members: list[Contact]):
         """
         Initializes a group chat.
 
@@ -37,14 +37,17 @@ class GroupChat:
                 Name of the group chat.
                 This must match the name of the group chat exactly
                 as it appears in the Messages app.
+            user_name (str):
+                The name used to label messages sent by the owner of this device.
             members (list[Contact]):
                 Members of the chat.
                 You don't need to include a contact for yourself,
                 but it can be useful if your messages are coming from multiple addresses.
+
         """
         self.name = name
+        self.user_name = user_name
         self.members = members
-        self.user_name = "You"
         self.unknown_addresses: dict[str, str] = {}
 
     def load_messages(self, chat_db: sqlite3.Cursor, since: str = ""):

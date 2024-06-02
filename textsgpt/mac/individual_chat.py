@@ -23,14 +23,16 @@ class IndividualChat:
             Defaults to "You".
     """
 
-    def __init__(self, other_person: Contact):
+    def __init__(self, user_name: str, other_person: Contact):
         """
         Args:
+            user_name (str):
+                The name used to label messages sent by the owner of this device.
             other_person (Contact):
                 Contact representing the other persion in the chat (aside from you).
         """
+        self.user_name = user_name
         self.other_person = other_person
-        self.user_name = "You"
 
     def load_messages(self, chat_db: sqlite3.Cursor, since: str = ""):
         """

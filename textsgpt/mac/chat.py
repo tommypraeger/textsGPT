@@ -30,6 +30,8 @@ class Chat:
     Attributes:
         chat (GroupChat | IndividualChat):
             Representation of either a group chat or individual chat that this class wraps.
+        user_name (str):
+            The name of the owner of this device.
         chat_db (sqlite3.Cursor):
             sqlite cursor used to interact with the chat database on Mac.
         messages (pandas.DataFrame):
@@ -43,7 +45,7 @@ class Chat:
             if they have been saved from an earlier execution.
     """
 
-    def __init__(self, chat_name: str, user_name: str = "You"):
+    def __init__(self, chat_name: str):
         if platform.system() != "Darwin":
             raise OSError(
                 f"Can only read messages on Mac :/. "
@@ -55,7 +57,7 @@ class Chat:
             self.chat = CHATS[chat_name]
         except KeyError as e:
             raise KeyError(f"Didn't find chat {chat_name}") from e
-        self.chat.user_name = user_name
+        self.user_name = self.chat.user_name
         self.chat_db = self.connect_to_db()
 
         # set up saved directories
