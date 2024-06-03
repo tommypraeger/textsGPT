@@ -1,12 +1,14 @@
 # textsGPT
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+TODO (summary of project)
 
 ## Getting started
 
 ### Prerequisites
 1. This project requires using macOS. It reads messages from the built-in messages database on Mac. I welcome future support for other operating systems and/or just passing in messages as a CSV file.
 2. This project was written using Python 3.12.3. It may work with other Python versions. Download python: https://www.python.org/downloads/
+3. You need an OpenAI API key to use with this project.
 
 ### Installation
 1. Clone the repository:
@@ -29,7 +31,10 @@ source venv/bin/activate
 ```
 pip install -r requirements.txt
 ```
-6. Give the application you will use to run this script Full Disk Access (I know this seems sketchy but it needs to be able to access the messages database stored on your Mac, which is not available to applications by default):
+6. Set environment variables (you can use a `.env` file to define them if you would like):
+    1. `OPENAI_API_KEY=<your OpenAI API key>`. https://help.openai.com/en/articles/4936850-where-do-i-find-my-openai-api-key
+    2. (optional) `TOKENIZERS_PARALLELISM=false` . Could help prevent the messages described [here](https://github.com/huggingface/transformers/issues/5486) from being printed.
+7. Give the application you will use to run this script Full Disk Access (I know this seems sketchy but it needs to be able to access the messages database stored on your Mac, which is not available to applications by default):
    1. Open System Preferences
    2. Go to Security and Privacy
    3. Go to Privacy
@@ -52,6 +57,9 @@ Once the indexing finishes, you can prompt the chatbot for information about you
 - Suggest a new name for the group chat
 - Please suggest date ideas that \<name> would like in New York City. Be specific.
 - What does \<name> think about \<topic>?
+
+### Configurations
+TODO (note about changing default values)
 
 ## Contributing
 
