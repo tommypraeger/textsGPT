@@ -2,11 +2,56 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
-## Installation
-TODO
+## Getting started
+
+### Prerequisites
+1. This project requires using macOS. It reads messages from the built-in messages database on Mac. I welcome future support for other operating systems and/or just passing in messages as a CSV file.
+2. This project was written using Python 3.12.3. It may work with other Python versions. Download python: https://www.python.org/downloads/
+
+### Installation
+1. Clone the repository:
+```
+git clone https://github.com/tommypraeger/textsGPT.git
+```
+2. Navigate to the repository directory:
+```
+cd textsGPT
+```
+3. Create a virtual environment:
+```
+python3 -m venv venv
+```
+4. Activate the virtual environment:
+```
+source venv/bin/activate
+```
+5. Install dependencies:
+```
+pip install -r requirements.txt
+```
+6. Give the application you will use to run this script Full Disk Access (I know this seems sketchy but it needs to be able to access the messages database stored on your Mac, which is not available to applications by default):
+   1. Open System Preferences
+   2. Go to Security and Privacy
+   3. Go to Privacy
+   4. Go to Full Disk Access
+   5. Give whatever application you're running this from Full Disk Access
+
+    Note: These instructions might be different on newer versions of macOS. These instructions work for macOS Monterrey (v12) (I need a new Mac to use a newer version)
 
 ## Usage
-TODO
+First, edit the `CHATS` dictionary in `textsgpt/mac/my_chats.py` to include information about the chat(s) you want to use.
+
+Run the script (replace `<name of chat>` with the dictionary key you used for the chat in `CHATS`):
+```
+python3 -m textsgpt "<name of chat>"
+```
+
+The first execution of the script can take several minutes for large chats as it builds an index for the entire content of the chat. Subsequent executions for the same chat should be faster as only new messages since the last script execution need to be indexed.
+
+Once the indexing finishes, you can prompt the chatbot for information about your chat. Some example prompts:
+- Suggest a new name for the group chat
+- Please suggest date ideas that \<name> would like in New York City. Be specific.
+- What does \<name> think about \<topic>?
 
 ## Contributing
 
@@ -45,6 +90,9 @@ If you want git to track `my_chats.py` again, run:
 ```
 git update-index --no-assume-unchanged textsgpt/mac/my_chats.py
 ```
+
+### Ideas for improvement
+TODO
 
 ## Acknowledgements
 - This project is in collaboration with Gabe Schmittlein and draws significant inspiration from https://github.com/gschmittlein/imessageGPT

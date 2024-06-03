@@ -44,7 +44,7 @@ Ask me something about your chat. Type 'exit' to quit.
 """
 )
 while True:
-    query = input("Question: ")
+    query = input("Prompt: ")
     if query.lower().strip() == "exit":
         break
     response = gpt_completion(query, faiss_index)
