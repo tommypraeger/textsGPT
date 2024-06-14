@@ -54,9 +54,10 @@ python3 -m textsgpt "<name of chat>"
 The first execution of the script can take several minutes for large chats as it builds an index for the entire content of the chat. Subsequent executions for the same chat should be faster as only new messages since the last script execution need to be indexed.
 
 Once the indexing finishes, you can prompt the chatbot for information about your chat. Some example prompts:
-- Suggest a new name for the group chat
+- Suggest a new name for the group chat.
 - Please suggest date ideas that \<name> would like in New York City. Be specific.
 - What does \<name> think about \<topic>?
+- Create a nickname for each member of the group.
 
 ### Configurations
 TODO (note about changing default values)
@@ -99,8 +100,19 @@ If you want git to track `my_chats.py` again, run:
 git update-index --no-assume-unchanged textsgpt/mac/my_chats.py
 ```
 
-### Ideas for improvement
-TODO
+### Current limitations and ideas for improvements
+In no particular order:
+- iMessage group chats must be named and have a unique display name. This simplifies finding group chats in the database but is limiting.
+- There isn't a nice UI to interact with.
+- Adding chats/contacts is manual. It doesn't auto-fill contacts and chats with info from the database. Not sure if there is a way to integrate with Contacts in addition to the messages DB that is used in this application.
+- Type hinting is not used in several places - mostly when working with Pandas and other libraries. I'm somewhat limited by the libraries, but there is more that could be done here.
+- Data caching is pretty basic and not very robust.
+- Text splitting is very basic. Texts could be split in a more sophisticated way, such as something that accounts for message timestamps, before being indexed.
+- Only textual data is used. Attachments, links, emoji, etc are ignored.
+- I have not experimented with other language models and strategies that might produce better results.
+- Each prompt is given a limited context, which reduces effectiveness in answering meta prompts about the chat as opposed to more targeted information lookups.
+- The chatbot has no memory of previous prompts.
+- Only iMessage group chats are supported. At least CSVs of messages should be supported too.
 
 ## Acknowledgements
 - This project is in collaboration with Gabe Schmittlein and draws significant inspiration from https://github.com/gschmittlein/imessageGPT
