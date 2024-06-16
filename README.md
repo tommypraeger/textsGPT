@@ -1,7 +1,7 @@
 # textsGPT
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-TODO (summary of project)
+textsGPT creates a chatbot that has knowledge of your text messages on your Mac. It works by first reading in messages from an iMessage group or individual chat, filtering the messages, and then encoding them into a local vector DB. You can then prompt a chatbot which uses retrieval-augmented generation (RAG) to find relevant messages and provide them as context in a prompt to a GPT completion model.
 
 ## Getting started
 
@@ -58,9 +58,6 @@ Once the indexing finishes, you can prompt the chatbot for information about you
 - Please suggest date ideas that \<name> would like in New York City. Be specific.
 - What does \<name> think about \<topic>?
 - Create a nickname for each member of the group.
-
-### Configurations
-TODO (note about changing default values)
 
 ## Contributing
 
